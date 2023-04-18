@@ -1,0 +1,33 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:5555
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+
+exporters:
+  awsemf:
+    region: 'us-east-1'
+    log_group_name: '/metrics/observability-otel-pc'
+    log_stream_name: 'observability-otel-poc'
+  awsxray:
+    region: 'us-east-1'
+  otlp:
+    endpoint: otelcol:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsemf, otlp]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsxray, otlp]
