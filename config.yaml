@@ -2,11 +2,7 @@ receivers:
   otlp:
     protocols:
       grpc:
-        endpoint: 0.0.0.0:5555
-#      grpc:
-#        endpoint: 127.0.0.1:4317
-#      http:
-#        endpoint: 127.0.0.1:55681
+        endpoint: 127.0.0.1:4317
 
 processors:
   memory_limiter:
@@ -22,13 +18,9 @@ processors:
 
 exporters:
   googlecloud:
-    project: local-test
+    project: alpine-eon-381904
     log:
       default_log_name: opentelemetry.io/collector-exported-log
-#  otlp:
-#    endpoint: 4317:4317
-#    tls:
-#      insecure: true
 
 service:
   pipelines:
