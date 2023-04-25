@@ -1,0 +1,25 @@
+runtime: java
+env: flex
+service: default
+#runtime_config:
+#  docker:
+#    image: gcr.io/alpine-eon-381904/web-site:v1
+#    build: .
+#runtime_config:
+#  operating_system: "ubuntu22"
+#  runtime_version: "17"
+resources:
+  cpu: 2
+  memory_gb: 1.4
+  disk_size_gb: 10
+network:
+  name: default
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 3
+  cool_down_period_sec: 180
+  cpu_utilization:
+    target_utilization: 0.5
+  target_concurrent_requests: 100
+
+#entrypoint: ./run-microservice.sh
