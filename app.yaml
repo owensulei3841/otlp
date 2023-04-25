@@ -1,4 +1,0 @@
-runtime: java17
-
-#entrypoint: java -jar target/observability-poc-1.0.jar && ./otelcol-contrib --config=config.yaml
-entrypoint: ./run-microservice.sh
