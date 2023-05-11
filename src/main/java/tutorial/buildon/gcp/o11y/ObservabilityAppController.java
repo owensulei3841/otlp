@@ -1,13 +1,11 @@
 package tutorial.buildon.gcp.o11y;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Objects;
 import java.util.Random;
 
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.DoubleHistogram;
-import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.ObservableLongCounter;
 import io.opentelemetry.api.metrics.ObservableLongUpDownCounter;
 import io.opentelemetry.api.trace.SpanKind;
@@ -17,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Span;
@@ -33,6 +30,8 @@ import javax.annotation.PostConstruct;
 @RestController
 public class ObservabilityAppController {
 
+    private static final OpenTelemetry openTelemetry = OpenTelemetryConfiguration.initOpenTelemetry();
+
     private static final Logger log =
             LoggerFactory.getLogger(ObservabilityAppController.class);
 
@@ -43,11 +42,11 @@ public class ObservabilityAppController {
     private String metricsApiVersion;
 
     private final Tracer tracer =
-            GlobalOpenTelemetry.getTracer("io.opentelemetry.traces.observability-poc",
+            openTelemetry.getTracer("io.opentelemetry.traces.observability-poc",
                     tracesApiVersion);
 
     private final Meter meter =
-            GlobalOpenTelemetry.meterBuilder("io.opentelemetry.metrics.observability-poc")
+            openTelemetry.meterBuilder("io.opentelemetry.metrics.observability-poc")
                     .setInstrumentationVersion(metricsApiVersion)
                     .build();
 
@@ -149,17 +148,12 @@ public class ObservabilityAppController {
 
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/")
-    public String hello() {
-        return "Welcome to Observability POC";
-    }
-
     @RequestMapping(method = RequestMethod.GET, value = "/simpleSpan/{id}")
     public Response simpleSpan(@PathVariable(name = "id") int id) {
         long startTime = System.currentTimeMillis();
         Response response = buildResponse();
         // Creating a simpleSpan
-
+        log.info("This is the log from /simpleSpan!");
         Span span = tracer.spanBuilder("/simpleSpan").setSpanKind(SpanKind.CLIENT).startSpan();
         span.setAttribute("http.method", "GET");
         span.setAttribute("http.url", "/simpleSpan");
@@ -170,6 +164,7 @@ public class ObservabilityAppController {
             Thread.sleep(new Random().nextInt(1000));
             if (id < 0) {
                 numberOfExecutions.add(1);
+                log.error("Invalid id!");
                 throw new Exception("Invalid id!");
             }
         } catch (Exception e) {
