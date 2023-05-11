@@ -149,18 +149,18 @@ public class ObservabilityAppController {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/simpleSpan/{id}")
-    public String simpleSpan(@PathVariable(name = "id") int id) {
+    public Response simpleSpan(@PathVariable(name = "id") int id) {
         long startTime = System.currentTimeMillis();
-//        Response response = buildResponse();
+        Response response = buildResponse();
         // Creating a simpleSpan
         log.info("This is the log from /simpleSpan!");
         Span span = tracer.spanBuilder("/simpleSpan").setSpanKind(SpanKind.CLIENT).startSpan();
         span.setAttribute("http.method", "GET");
         span.setAttribute("http.url", "/simpleSpan");
         try (Scope scope = span.makeCurrent()) {
-//            if (response.isValid()) {
-//                log.info("The response is valid.");
-//            }
+            if (response.isValid()) {
+                log.info("The response is valid.");
+            }
             Thread.sleep(new Random().nextInt(1000));
             if (id < 0) {
                 numberOfExecutions.add(1);
@@ -178,15 +178,15 @@ public class ObservabilityAppController {
         long endTime = System.currentTimeMillis();
         simpleSpanLatencyHistogram.record(endTime - startTime);
 
-        return "response";
+        return response;
     }
 
     //   Here, we will create nested "span"s for nested operations
     @RequestMapping(method = RequestMethod.POST, value = "/nestedSpan1")
-    public String nestedSpan1() {
+    public Response nestedSpan1() {
         long startTime = System.currentTimeMillis();
 
-//        Response response = new Response("nestedSpan1 Response");
+        Response response = new Response("nestedSpan1 Response");
 
         Span parentSpan = tracer.spanBuilder("/nestedSpan1").setSpanKind(SpanKind.CLIENT).startSpan();
         parentSpan.setAttribute("http.method", "POST");
@@ -208,7 +208,7 @@ public class ObservabilityAppController {
         long endTime = System.currentTimeMillis();
         nestedSpan1LatencyHistogram.record(endTime - startTime);
 
-        return "response";
+        return response;
     }
 
     void childOne(Span parentSpan) {
@@ -235,10 +235,10 @@ public class ObservabilityAppController {
     // example like :
     // Span childRemoteParent = tracer.spanBuilder("Child").setParent(remoteContext).startSpan();
     @RequestMapping(method = RequestMethod.POST, value = "/nestedSpan2")
-    public String parentSpan2() {
+    public Response parentSpan2() {
         long startTime = System.currentTimeMillis();
 
-//        Response response = new Response("nestedSpan2 Response");
+        Response response = new Response("nestedSpan2 Response");
         Span parentSpan = tracer.spanBuilder("/nestedSpan2").setSpanKind(SpanKind.CLIENT).startSpan();
 
         try (Scope scope = parentSpan.makeCurrent()) {
@@ -255,7 +255,7 @@ public class ObservabilityAppController {
         long endTime = System.currentTimeMillis();
         nestedSpan2LatencyHistogram.record(endTime - startTime);
 
-        return "response";
+        return response;
     }
 
     void childTwo() {
@@ -276,19 +276,19 @@ public class ObservabilityAppController {
         }
     }
 
-//    @WithSpan
-//    private Response buildResponse() {
-//        return new Response("Hello World");
-//    }
-//
-//    private record Response(String message) {
-//        private Response {
-//            Objects.requireNonNull(message);
-//        }
-//
-//        private boolean isValid() {
-//            return true;
-//        }
-//    }
+    @WithSpan
+    private Response buildResponse() {
+        return new Response("Hello World");
+    }
+
+    private record Response(String message) {
+        private Response {
+            Objects.requireNonNull(message);
+        }
+
+        private boolean isValid() {
+            return true;
+        }
+    }
 
 }
